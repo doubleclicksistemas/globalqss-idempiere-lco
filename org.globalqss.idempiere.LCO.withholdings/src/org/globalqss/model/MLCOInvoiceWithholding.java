@@ -80,7 +80,7 @@ public class MLCOInvoiceWithholding extends X_LCO_InvoiceWithholding
 		MInvoice inv = new MInvoice(getCtx(), getC_Invoice_ID(), get_TrxName());
 		if (inv.getReversal_ID() <= 0) {
 			if (getLCO_WithholdingRule_ID() > 0) {
-
+				
 				// Fill isCalcOnPayment according to rule
 				X_LCO_WithholdingRule wr = new X_LCO_WithholdingRule(getCtx(), getLCO_WithholdingRule_ID(), get_TrxName());
 				X_LCO_WithholdingCalc wc = new X_LCO_WithholdingCalc(getCtx(), wr.getLCO_WithholdingCalc_ID(), get_TrxName());
@@ -91,16 +91,19 @@ public class MLCOInvoiceWithholding extends X_LCO_InvoiceWithholding
 				if (inv.isProcessed()) {
 					setIsCalcOnPayment(true);
 				}
-
 			}
 
 			// Fill DateTrx and DateAcct for isCalcOnInvoice according to the invoice
 			if (getC_AllocationLine_ID() <= 0) {
-				setDateAcct(inv.getDateAcct());
-				setDateTrx(inv.getDateInvoiced());
+				X_LCO_WithholdingType wt = (X_LCO_WithholdingType) getLCO_WithholdingType();
+				if (wt.isOverrideDateOnAllocation())
+				{
+					setDateTrx(inv.getDateInvoiced());
+					setDateAcct(inv.getDateAcct());
+				}
 			}
 		}
-
+		
 		return true;
 	}	//	beforeSave
 

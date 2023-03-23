@@ -465,9 +465,13 @@ public class LCO_ValidatorWH extends AbstractEventHandler
 						int iwhid = rs.getInt(1);
 						MLCOInvoiceWithholding iwh = new MLCOInvoiceWithholding(
 								ah.getCtx(), iwhid, ah.get_TrxName());
+						X_LCO_WithholdingType wt = (X_LCO_WithholdingType) iwh.getLCO_WithholdingType();
 						iwh.setC_AllocationLine_ID(al.getC_AllocationLine_ID());
-						iwh.setDateAcct(ah.getDateAcct());
-						iwh.setDateTrx(ah.getDateTrx());
+						if (wt.isOverrideDateOnAllocation())
+						{
+							iwh.setDateAcct(ah.getDateAcct());
+							iwh.setDateTrx(ah.getDateTrx());
+						}
 						iwh.setProcessed(true);
 						if (!iwh.save())
 							return "Error saving LCO_InvoiceWithholding completePaymentWithholdings";
@@ -712,7 +716,10 @@ public class LCO_ValidatorWH extends AbstractEventHandler
 			 + "          (SELECT DateInvoiced "
 			 + "             FROM C_Invoice "
 			 + "            WHERE C_Invoice.C_Invoice_ID = LCO_InvoiceWithholding.C_Invoice_ID) "
-			 + " WHERE C_Invoice_ID = ? ";
+			 + " FROM LCO_WithholdingType wt"
+			 + " WHERE C_Invoice_ID = ?"
+			 + " AND wt.LCO_WIthholdingType_ID = LCO_InvoiceWithholding.LCO_WithholdingType_ID"
+			 + " AND wt.IsOverrideDateOnAllocation = 'Y'";
 		int noupddates = DB.executeUpdate(upd_dates, inv.getC_Invoice_ID(), inv.get_TrxName());
 		if (noupddates == -1)
 			return "Error updating dates on invoice withholding";

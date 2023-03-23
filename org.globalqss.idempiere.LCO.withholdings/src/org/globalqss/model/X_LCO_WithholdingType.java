@@ -24,14 +24,15 @@ import org.compiere.util.KeyNamePair;
 
 /** Generated Model for LCO_WithholdingType
  *  @author iDempiere (generated) 
- *  @version Release 3.1 - $Id$ */
+ *  @version Release 10 - $Id$ */
+@org.adempiere.base.Model(table="LCO_WithholdingType")
 public class X_LCO_WithholdingType extends PO implements I_LCO_WithholdingType, I_Persistent 
 {
 
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20151110L;
+	private static final long serialVersionUID = 20230323L;
 
     /** Standard Constructor */
     public X_LCO_WithholdingType (Properties ctx, int LCO_WithholdingType_ID, String trxName)
@@ -39,6 +40,23 @@ public class X_LCO_WithholdingType extends PO implements I_LCO_WithholdingType, 
       super (ctx, LCO_WithholdingType_ID, trxName);
       /** if (LCO_WithholdingType_ID == 0)
         {
+			setIsOverrideDateOnAllocation (false);
+// N
+			setIsSOTrx (false);
+// N
+			setLCO_WithholdingType_ID (0);
+			setName (null);
+        } */
+    }
+
+    /** Standard Constructor */
+    public X_LCO_WithholdingType (Properties ctx, int LCO_WithholdingType_ID, String trxName, String ... virtualColumns)
+    {
+      super (ctx, LCO_WithholdingType_ID, trxName, virtualColumns);
+      /** if (LCO_WithholdingType_ID == 0)
+        {
+			setIsOverrideDateOnAllocation (false);
+// N
 			setIsSOTrx (false);
 // N
 			setLCO_WithholdingType_ID (0);
@@ -69,15 +87,14 @@ public class X_LCO_WithholdingType extends PO implements I_LCO_WithholdingType, 
 
     public String toString()
     {
-      StringBuffer sb = new StringBuffer ("X_LCO_WithholdingType[")
-        .append(get_ID()).append("]");
+      StringBuilder sb = new StringBuilder ("X_LCO_WithholdingType[")
+        .append(get_ID()).append(",Name=").append(getName()).append("]");
       return sb.toString();
     }
 
 	/** Set Counter.
-		@param Counter 
-		Count Value
-	  */
+		@param Counter Count Value
+	*/
 	public void setCounter (int Counter)
 	{
 		throw new IllegalArgumentException ("Counter is virtual column");	}
@@ -85,7 +102,7 @@ public class X_LCO_WithholdingType extends PO implements I_LCO_WithholdingType, 
 	/** Get Counter.
 		@return Count Value
 	  */
-	public int getCounter () 
+	public int getCounter()
 	{
 		Integer ii = (Integer)get_Value(COLUMNNAME_Counter);
 		if (ii == null)
@@ -94,9 +111,8 @@ public class X_LCO_WithholdingType extends PO implements I_LCO_WithholdingType, 
 	}
 
 	/** Set Description.
-		@param Description 
-		Optional short description of the record
-	  */
+		@param Description Optional short description of the record
+	*/
 	public void setDescription (String Description)
 	{
 		set_Value (COLUMNNAME_Description, Description);
@@ -105,15 +121,36 @@ public class X_LCO_WithholdingType extends PO implements I_LCO_WithholdingType, 
 	/** Get Description.
 		@return Optional short description of the record
 	  */
-	public String getDescription () 
+	public String getDescription()
 	{
 		return (String)get_Value(COLUMNNAME_Description);
 	}
 
+	/** Set Override Date On Allocation.
+		@param IsOverrideDateOnAllocation Override Date On Allocation
+	*/
+	public void setIsOverrideDateOnAllocation (boolean IsOverrideDateOnAllocation)
+	{
+		set_Value (COLUMNNAME_IsOverrideDateOnAllocation, Boolean.valueOf(IsOverrideDateOnAllocation));
+	}
+
+	/** Get Override Date On Allocation.
+		@return Override Date On Allocation	  */
+	public boolean isOverrideDateOnAllocation()
+	{
+		Object oo = get_Value(COLUMNNAME_IsOverrideDateOnAllocation);
+		if (oo != null) 
+		{
+			 if (oo instanceof Boolean) 
+				 return ((Boolean)oo).booleanValue(); 
+			return "Y".equals(oo);
+		}
+		return false;
+	}
+
 	/** Set Sales Transaction.
-		@param IsSOTrx 
-		This is a Sales Transaction
-	  */
+		@param IsSOTrx This is a Sales Transaction
+	*/
 	public void setIsSOTrx (boolean IsSOTrx)
 	{
 		set_Value (COLUMNNAME_IsSOTrx, Boolean.valueOf(IsSOTrx));
@@ -122,7 +159,7 @@ public class X_LCO_WithholdingType extends PO implements I_LCO_WithholdingType, 
 	/** Get Sales Transaction.
 		@return This is a Sales Transaction
 	  */
-	public boolean isSOTrx () 
+	public boolean isSOTrx()
 	{
 		Object oo = get_Value(COLUMNNAME_IsSOTrx);
 		if (oo != null) 
@@ -135,18 +172,19 @@ public class X_LCO_WithholdingType extends PO implements I_LCO_WithholdingType, 
 	}
 
 	/** Set Withholding Type.
-		@param LCO_WithholdingType_ID Withholding Type	  */
+		@param LCO_WithholdingType_ID Withholding Type
+	*/
 	public void setLCO_WithholdingType_ID (int LCO_WithholdingType_ID)
 	{
-		if (LCO_WithholdingType_ID < 1) 
+		if (LCO_WithholdingType_ID < 1)
 			set_ValueNoCheck (COLUMNNAME_LCO_WithholdingType_ID, null);
-		else 
+		else
 			set_ValueNoCheck (COLUMNNAME_LCO_WithholdingType_ID, Integer.valueOf(LCO_WithholdingType_ID));
 	}
 
 	/** Get Withholding Type.
 		@return Withholding Type	  */
-	public int getLCO_WithholdingType_ID () 
+	public int getLCO_WithholdingType_ID()
 	{
 		Integer ii = (Integer)get_Value(COLUMNNAME_LCO_WithholdingType_ID);
 		if (ii == null)
@@ -155,7 +193,8 @@ public class X_LCO_WithholdingType extends PO implements I_LCO_WithholdingType, 
 	}
 
 	/** Set LCO_WithholdingType_UU.
-		@param LCO_WithholdingType_UU LCO_WithholdingType_UU	  */
+		@param LCO_WithholdingType_UU LCO_WithholdingType_UU
+	*/
 	public void setLCO_WithholdingType_UU (String LCO_WithholdingType_UU)
 	{
 		set_Value (COLUMNNAME_LCO_WithholdingType_UU, LCO_WithholdingType_UU);
@@ -163,15 +202,14 @@ public class X_LCO_WithholdingType extends PO implements I_LCO_WithholdingType, 
 
 	/** Get LCO_WithholdingType_UU.
 		@return LCO_WithholdingType_UU	  */
-	public String getLCO_WithholdingType_UU () 
+	public String getLCO_WithholdingType_UU()
 	{
 		return (String)get_Value(COLUMNNAME_LCO_WithholdingType_UU);
 	}
 
 	/** Set Name.
-		@param Name 
-		Alphanumeric identifier of the entity
-	  */
+		@param Name Alphanumeric identifier of the entity
+	*/
 	public void setName (String Name)
 	{
 		set_Value (COLUMNNAME_Name, Name);
@@ -180,7 +218,7 @@ public class X_LCO_WithholdingType extends PO implements I_LCO_WithholdingType, 
 	/** Get Name.
 		@return Alphanumeric identifier of the entity
 	  */
-	public String getName () 
+	public String getName()
 	{
 		return (String)get_Value(COLUMNNAME_Name);
 	}
