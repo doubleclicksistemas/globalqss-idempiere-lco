@@ -32,6 +32,7 @@ import java.util.Properties;
 
 import org.compiere.model.MBPartner;
 import org.compiere.model.MBPartnerLocation;
+import org.compiere.model.MConversionRate;
 import org.compiere.model.MDocType;
 import org.compiere.model.MInvoice;
 import org.compiere.model.MLocation;
@@ -42,6 +43,7 @@ import org.compiere.model.MTax;
 import org.compiere.model.Query;
 import org.compiere.util.DB;
 import org.compiere.util.Env;
+import org.idempiere.exceptions.NoCurrencyConversionException;
 
 /**
  *	LCO_MInvoice
@@ -115,7 +117,7 @@ public class LCO_MInvoice extends MInvoice
 				log.warning("No LCO_WithholdingRuleConf for LCO_WithholdingType = "+wt.getLCO_WithholdingType_ID());
 				continue;
 			}
-
+			
 			// look for applicable rules according to config fields (rule)
 			StringBuffer wherer = new StringBuffer(" LCO_WithholdingType_ID=? AND ValidFrom<=? ");
 			List<Object> paramsr = new ArrayList<Object>();
@@ -327,7 +329,21 @@ public class LCO_MInvoice extends MInvoice
 					}
 				}
 				log.info("Base: "+base+ " Thresholdmin:"+wc.getThresholdmin());
-
+				
+				if (getC_Currency_ID() != wt.getC_Currency_ID()
+						&& base != null)
+				{
+					base = MConversionRate.convert(getCtx(), base, getC_Currency_ID()
+							, wt.getC_Currency_ID(), getDateInvoiced()
+							, getC_ConversionType_ID(), getAD_Client_ID()
+							, getAD_Org_ID());
+					
+					if (base == null)
+						throw new NoCurrencyConversionException(getC_Currency_ID(), wt.getC_Currency_ID()
+								, getDateInvoiced(), getC_ConversionType_ID()
+								, getAD_Client_ID(), getAD_Org_ID());
+				}
+				
 				// if base between thresholdmin and thresholdmax inclusive
 				// if thresholdmax = 0 it is ignored
 				if (base != null &&

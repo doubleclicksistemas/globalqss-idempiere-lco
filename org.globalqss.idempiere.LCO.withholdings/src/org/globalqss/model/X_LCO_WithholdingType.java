@@ -32,7 +32,7 @@ public class X_LCO_WithholdingType extends PO implements I_LCO_WithholdingType, 
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20230323L;
+	private static final long serialVersionUID = 20230324L;
 
     /** Standard Constructor */
     public X_LCO_WithholdingType (Properties ctx, int LCO_WithholdingType_ID, String trxName)
@@ -91,6 +91,34 @@ public class X_LCO_WithholdingType extends PO implements I_LCO_WithholdingType, 
         .append(get_ID()).append(",Name=").append(getName()).append("]");
       return sb.toString();
     }
+
+	public org.compiere.model.I_C_Currency getC_Currency() throws RuntimeException
+	{
+		return (org.compiere.model.I_C_Currency)MTable.get(getCtx(), org.compiere.model.I_C_Currency.Table_ID)
+			.getPO(getC_Currency_ID(), get_TrxName());
+	}
+
+	/** Set Currency.
+		@param C_Currency_ID The Currency for this record
+	*/
+	public void setC_Currency_ID (int C_Currency_ID)
+	{
+		if (C_Currency_ID < 1)
+			set_Value (COLUMNNAME_C_Currency_ID, null);
+		else
+			set_Value (COLUMNNAME_C_Currency_ID, Integer.valueOf(C_Currency_ID));
+	}
+
+	/** Get Currency.
+		@return The Currency for this record
+	  */
+	public int getC_Currency_ID()
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_C_Currency_ID);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
+	}
 
 	/** Set Counter.
 		@param Counter Count Value
