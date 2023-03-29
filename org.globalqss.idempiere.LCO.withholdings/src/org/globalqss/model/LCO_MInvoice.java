@@ -45,6 +45,8 @@ import org.compiere.util.DB;
 import org.compiere.util.Env;
 import org.idempiere.exceptions.NoCurrencyConversionException;
 
+import com.ingeint.utils.IngeintConstants;
+
 /**
  *	LCO_MInvoice
  *
@@ -330,16 +332,17 @@ public class LCO_MInvoice extends MInvoice
 				}
 				log.info("Base: "+base+ " Thresholdmin:"+wc.getThresholdmin());
 				
-				if (getC_Currency_ID() != wt.getC_Currency_ID()
+				int C_WithholdingTypeCurrency_ID = wt.get_ValueAsInt(IngeintConstants.COLUMNNAME_C_Currency_ID);
+				if (getC_Currency_ID() != C_WithholdingTypeCurrency_ID
 						&& base != null)
 				{
 					base = MConversionRate.convert(getCtx(), base, getC_Currency_ID()
-							, wt.getC_Currency_ID(), getDateInvoiced()
+							, C_WithholdingTypeCurrency_ID, getDateInvoiced()
 							, getC_ConversionType_ID(), getAD_Client_ID()
 							, getAD_Org_ID());
 					
 					if (base == null)
-						throw new NoCurrencyConversionException(getC_Currency_ID(), wt.getC_Currency_ID()
+						throw new NoCurrencyConversionException(getC_Currency_ID(), C_WithholdingTypeCurrency_ID
 								, getDateInvoiced(), getC_ConversionType_ID()
 								, getAD_Client_ID(), getAD_Org_ID());
 				}
@@ -367,6 +370,7 @@ public class LCO_MInvoice extends MInvoice
 					iwh.setC_Tax_ID(tax.getC_Tax_ID());
 					iwh.setPercent(tax.getRate());
 					iwh.setProcessed(false);
+					iwh.set_ValueOfColumn(IngeintConstants.COLUMNNAME_C_Currency_ID, C_WithholdingTypeCurrency_ID);
 					int stdPrecision = MPriceList.getStandardPrecision(getCtx(), getM_PriceList_ID());
 					BigDecimal taxamt = tax.calculateTax(base, false, stdPrecision);
 					if (wc.getAmountRefunded() != null &&

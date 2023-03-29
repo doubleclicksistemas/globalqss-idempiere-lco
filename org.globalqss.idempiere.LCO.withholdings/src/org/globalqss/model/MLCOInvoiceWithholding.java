@@ -26,9 +26,12 @@
 package org.globalqss.model;
 
 import java.sql.ResultSet;
+import java.util.Arrays;
 import java.util.Properties;
+import java.util.function.Function;
 
 import org.compiere.model.MInvoice;
+import org.compiere.model.Query;
 import org.compiere.util.CLogger;
 
 /**
@@ -45,8 +48,9 @@ public class MLCOInvoiceWithholding extends X_LCO_InvoiceWithholding
 	/**	Static Logger	*/
 	@SuppressWarnings("unused")
 	private static CLogger	s_log	= CLogger.getCLogger (MLCOInvoiceWithholding.class);
-
-
+	
+	private MInvoice m_invoice = null;
+	
 	/**************************************************************************
 	 * 	Default Constructor
 	 *	@param ctx context
@@ -68,7 +72,12 @@ public class MLCOInvoiceWithholding extends X_LCO_InvoiceWithholding
 	{
 		super(ctx, rs, trxName);
 	}	//	MLCOInvoiceWithholding
-
+	
+	public MLCOInvoiceWithholding(Properties ctx, MLCOInvoiceWithholding copy, String trxName) {
+		this(ctx, 0, trxName);
+		copyPO(copy);
+	}
+	
 	/**************************************************************************
 	 * 	Before Save
 	 *	@param newRecord
@@ -106,7 +115,56 @@ public class MLCOInvoiceWithholding extends X_LCO_InvoiceWithholding
 		
 		return true;
 	}	//	beforeSave
-
+	
+	public static int sortByOrgAndInvoice(MLCOInvoiceWithholding wh1, MLCOInvoiceWithholding wh2) {
+		
+		if (wh1.getAD_Org_ID() < wh2.getAD_Org_ID())
+			return -1;
+		else if (wh1.getAD_Org_ID() > wh2.getAD_Org_ID())
+			return 1;
+		
+		return (wh1.getC_Invoice_ID() < wh2.getC_Invoice_ID()) ? -1
+				: (wh1.getC_Invoice_ID() == wh2.getC_Invoice_ID()) ? 0 : 1;
+	}
+	
+	public static MLCOInvoiceWithholding[] getFromInvoice(Properties ctx, int C_Invoice_ID, String trxName) {
+		return new Query(ctx, Table_Name, "C_Invoice_ID = ?", trxName)
+				.setParameters(C_Invoice_ID)
+				.setOnlyActiveRecords(true)
+				.list()
+				.toArray(MLCOInvoiceWithholding[]::new);
+	}
+	
+	public static MLCOInvoiceWithholding[] getFromInvoice(MInvoice invoice) {
+		return getFromInvoiceAndSet(invoice, inv -> getFromInvoice(inv.getCtx(), inv.get_ID(), inv.get_TrxName()));
+	}
+	
+	public static MLCOInvoiceWithholding[] getAutomaticAllocationWithholding(MInvoice invoice, boolean automaticAllocation) {
+		return getFromInvoiceAndSet(invoice
+				, inv -> getAutomaticAllocationWithholding(inv.getCtx(), inv.get_ID()
+						, automaticAllocation, inv.get_TrxName()));
+	}
+	
+	public static MLCOInvoiceWithholding[] getFromInvoiceAndSet(MInvoice invoice
+			, Function<MInvoice, MLCOInvoiceWithholding[]> f) {
+		return Arrays.stream(f.apply(invoice))
+				.peek(withholding -> withholding.setInvoice(invoice))
+				.toArray(MLCOInvoiceWithholding[]::new);
+	}
+	
+	public static MLCOInvoiceWithholding[] getAutomaticAllocationWithholding(Properties ctx
+			, int C_Invoice_ID, boolean automaticAllocation
+			, String trxName) {
+		
+		return new Query(ctx, Table_Name, "LCO_InvoiceWithholding.C_Invoice_ID = ? AND wt.IsAllocateWithholdingAuto = ?", trxName)
+				.addJoinClause("INNER JOIN LCO_WithholdingType wt ON wt.LCO_WithholdingType_ID = LCO_InvoiceWithholding.LCO_WithholdingType_ID")
+				.setParameters(C_Invoice_ID, automaticAllocation)
+				.setOnlyActiveRecords(true)
+				.setOrderBy(COLUMNNAME_LCO_WithholdingType_ID)
+				.list()
+				.toArray(MLCOInvoiceWithholding[]::new);
+	}
+	
 	/**
 	 * 	After Save
 	 *	@param newRecord new
@@ -120,7 +178,7 @@ public class MLCOInvoiceWithholding extends X_LCO_InvoiceWithholding
 
 		return LCO_MInvoice.updateHeaderWithholding(getC_Invoice_ID(), get_TrxName());
 	}	//	afterSave
-
+	
 	/**
 	 * 	After Delete
 	 *	@param success success
@@ -132,5 +190,21 @@ public class MLCOInvoiceWithholding extends X_LCO_InvoiceWithholding
 			return success;
 		return LCO_MInvoice.updateHeaderWithholding(getC_Invoice_ID(), get_TrxName());
 	}	//	afterDelete
-
+	
+	public void setInvoice(MInvoice invoice) {
+		setC_Invoice_ID(invoice.get_ID());
+		m_invoice = invoice;
+	}
+	
+	@Override
+	public MInvoice getC_Invoice() throws RuntimeException {
+		
+		if (m_invoice != null && getC_Invoice_ID() != m_invoice.get_ID())
+			m_invoice = null;
+		
+		if (m_invoice == null && getC_Invoice_ID() > 0)
+			m_invoice = (MInvoice) super.getC_Invoice();
+		
+		return m_invoice;
+	}
 }	//	MLCOInvoiceWithholding

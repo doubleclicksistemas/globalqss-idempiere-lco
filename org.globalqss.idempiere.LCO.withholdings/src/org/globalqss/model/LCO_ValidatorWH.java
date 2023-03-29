@@ -376,20 +376,30 @@ public class LCO_ValidatorWH extends AbstractEventHandler
 	}
 
 	private String validateWriteOffVsPaymentWithholdings(MPayment pay) {
+		int LCO_WithholdingType_ID = pay.get_ValueAsInt(X_LCO_WithholdingType.COLUMNNAME_LCO_WithholdingType_ID);
+		
+		if (LCO_WithholdingType_ID <= 0)
+			return null;
+		
 		if (pay.getC_Invoice_ID() > 0) {
 			// validate vs invoice of payment
 			BigDecimal wo = pay.getWriteOffAmt();
 			BigDecimal sumwhamt = Env.ZERO;
+			
+			StringBuilder sql = new StringBuilder("SELECT COALESCE(SUM(TaxAmt), 0)")
+					.append(" FROM LCO_InvoiceWithholding")
+					.append(" WHERE C_Invoice_ID = ?")
+					.append(" AND IsActive = 'Y'")
+					.append(" AND IsCalcOnPayment = 'Y'")
+					.append(" AND Processed = 'N'")
+					.append(" AND C_AllocationLine_ID IS NULL")
+					.append(" AND LCO_WithholdingType_ID = ?");
+			
 			sumwhamt = DB.getSQLValueBD(
 					pay.get_TrxName(),
-					"SELECT COALESCE (SUM (TaxAmt), 0) " +
-					"FROM LCO_InvoiceWithholding " +
-					"WHERE C_Invoice_ID = ? AND " +
-					"IsActive = 'Y' AND " +
-					"IsCalcOnPayment = 'Y' AND " +
-					"Processed = 'N' AND " +
-					"C_AllocationLine_ID IS NULL",
-					pay.getC_Invoice_ID());
+					sql.toString(),
+					pay.getC_Invoice_ID()
+					, LCO_WithholdingType_ID);
 			if (sumwhamt == null)
 				sumwhamt = Env.ZERO;
 			MInvoice invoice = new MInvoice(pay.getCtx(), pay.getC_Invoice_ID(), pay.get_TrxName());
@@ -413,16 +423,19 @@ public class LCO_ValidatorWH extends AbstractEventHandler
 					MPaymentAllocate pal = new MPaymentAllocate(pay.getCtx(), palid, pay.get_TrxName());
 					BigDecimal wo = pal.getWriteOffAmt();
 					BigDecimal sumwhamt = Env.ZERO;
+					StringBuilder sqlWithholding = new StringBuilder("SELECT COALESCE(SUM(TaxAmt), 0)")
+							.append(" FROM LCO_InvoiceWithholding")
+							.append(" WHERE C_Invoice_ID = ?")
+							.append(" AND IsActive = 'Y'")
+							.append(" AND IsCalcOnPayment = 'Y'")
+							.append(" AND Processed = 'N'")
+							.append(" AND C_AllocationLine_ID IS NULL")
+							.append(" AND LCO_WithholdingType_ID = ?");
+					
 					sumwhamt = DB.getSQLValueBD(
 							pay.get_TrxName(),
-							"SELECT COALESCE (SUM (TaxAmt), 0) " +
-							"FROM LCO_InvoiceWithholding " +
-							"WHERE C_Invoice_ID = ? AND " +
-							"IsActive = 'Y' AND " +
-							"IsCalcOnPayment = 'Y' AND " +
-							"Processed = 'N' AND " +
-							"C_AllocationLine_ID IS NULL",
-							pal.getC_Invoice_ID());
+							sqlWithholding.toString(),
+							pal.getC_Invoice_ID(), LCO_WithholdingType_ID);
 					if (sumwhamt == null)
 						sumwhamt = Env.ZERO;
 					MInvoice invoice = new MInvoice(pay.getCtx(), pal.getC_Invoice_ID(), pay.get_TrxName());
@@ -448,18 +461,31 @@ public class LCO_ValidatorWH extends AbstractEventHandler
 		for (int i = 0; i < als.length; i++) {
 			MAllocationLine al = als[i];
 			if (al.getC_Invoice_ID() > 0) {
-				String sql =
-					"SELECT LCO_InvoiceWithholding_ID " +
-					"FROM LCO_InvoiceWithholding " +
-					"WHERE C_Invoice_ID = ? AND " +
-					"IsActive = 'Y' AND " +
-					"IsCalcOnPayment = 'Y' AND " +
-					"Processed = 'N' AND " +
-					"C_AllocationLine_ID IS NULL";
-				PreparedStatement pstmt = DB.prepareStatement(sql, ah.get_TrxName());
+				int LCO_WithholdingType_ID = 0;
+				
+				if (al.getC_Payment_ID() > 0)
+				{
+					MPayment payment = (MPayment) al.getC_Payment();
+					LCO_WithholdingType_ID = payment.get_ValueAsInt(X_LCO_WithholdingType.COLUMNNAME_LCO_WithholdingType_ID);
+				}
+				
+				if (LCO_WithholdingType_ID <= 0)
+					continue;
+				
+				StringBuilder sql = new StringBuilder("SELECT LCO_InvoiceWithholding_ID")
+						.append(" FROM LCO_InvoiceWithholding")
+						.append(" WHERE C_Invoice_ID = ?")
+						.append(" AND IsActive = 'Y'")
+						.append(" AND IsCalcOnPayment = 'Y'")
+						.append(" AND Processed = 'N'")
+						.append(" AND C_AllocationLine_ID IS NULL")
+						.append(" AND LCO_WithholdingType_ID = ?");
+				
+				PreparedStatement pstmt = DB.prepareStatement(sql.toString(), ah.get_TrxName());
 				ResultSet rs = null;
 				try {
 					pstmt.setInt(1, al.getC_Invoice_ID());
+					pstmt.setInt(2, LCO_WithholdingType_ID);
 					rs = pstmt.executeQuery();
 					while (rs.next()) {
 						int iwhid = rs.getInt(1);
