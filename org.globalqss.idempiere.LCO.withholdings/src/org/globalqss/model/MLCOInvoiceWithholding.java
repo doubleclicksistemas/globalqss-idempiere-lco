@@ -25,14 +25,21 @@
 
 package org.globalqss.model;
 
+import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.function.Function;
 
 import org.compiere.model.MInvoice;
+import org.compiere.model.MPriceList;
+import org.compiere.model.MSysConfig;
 import org.compiere.model.Query;
 import org.compiere.util.CLogger;
+
+import com.ingeint.utils.ConversionUtil;
+import com.ingeint.utils.IngeintConstants;
 
 /**
  *	Invoice Withholding Model
@@ -110,6 +117,38 @@ public class MLCOInvoiceWithholding extends X_LCO_InvoiceWithholding
 					setDateTrx(inv.getDateInvoiced());
 					setDateAcct(inv.getDateAcct());
 				}
+			}
+			
+			if (is_ValueChanged(IngeintConstants.COLUMNNAME_ConvertedTaxBaseAmt))
+			{
+				BigDecimal taxBaseAmt = Optional.ofNullable((BigDecimal) get_Value(IngeintConstants.COLUMNNAME_ConvertedTaxBaseAmt))
+						.orElse(BigDecimal.ZERO);
+				int C_Currency_ID = get_ValueAsInt(IngeintConstants.COLUMNNAME_C_Currency_ID);
+				boolean generateWithPriceListPrecision = MSysConfig.getBooleanValue(IngeintConstants.SYSCONFIG_LVE_GENERATE_WITHHOLDINGS_WITH_LIST_PRECISION
+						, false, getAD_Client_ID(), getAD_Org_ID());
+				
+				int stdPrecision = generateWithPriceListPrecision
+						? MPriceList.getPricePrecision(getCtx(), inv.getM_PriceList_ID())
+						: MPriceList.getStandardPrecision(getCtx(), inv.getM_PriceList_ID());
+				
+				taxBaseAmt = ConversionUtil.convertInvoice(taxBaseAmt, inv, C_Currency_ID, true, stdPrecision);
+				setTaxBaseAmt(taxBaseAmt);
+			}
+			
+			if (is_ValueChanged(IngeintConstants.COLUMNNAME_ConvertedTaxAmt))
+			{
+				BigDecimal taxAmt = Optional.ofNullable((BigDecimal) get_Value(IngeintConstants.COLUMNNAME_ConvertedTaxAmt))
+						.orElse(BigDecimal.ZERO);
+				int C_Currency_ID = get_ValueAsInt(IngeintConstants.COLUMNNAME_C_Currency_ID);
+				boolean generateWithPriceListPrecision = MSysConfig.getBooleanValue(IngeintConstants.SYSCONFIG_LVE_GENERATE_WITHHOLDINGS_WITH_LIST_PRECISION
+						, false, getAD_Client_ID(), getAD_Org_ID());
+				
+				int stdPrecision = generateWithPriceListPrecision
+						? MPriceList.getPricePrecision(getCtx(), inv.getM_PriceList_ID())
+						: MPriceList.getStandardPrecision(getCtx(), inv.getM_PriceList_ID());
+				
+				taxAmt = ConversionUtil.convertInvoice(taxAmt, inv, C_Currency_ID, true, stdPrecision);
+				setTaxBaseAmt(taxAmt);
 			}
 		}
 		
