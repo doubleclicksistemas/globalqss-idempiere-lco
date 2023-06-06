@@ -127,6 +127,24 @@ public class MLCOInvoiceWithholding extends X_LCO_InvoiceWithholding
 				: (wh1.getC_Invoice_ID() == wh2.getC_Invoice_ID()) ? 0 : 1;
 	}
 	
+	public static int sortByOrgCurrencyAndInvoice(MLCOInvoiceWithholding wh1, MLCOInvoiceWithholding wh2) {
+		if (wh1.getAD_Org_ID() < wh2.getAD_Org_ID())
+			return -1;
+		else if (wh1.getAD_Org_ID() > wh2.getAD_Org_ID())
+			return 1;
+		
+		MInvoice invoice1 = wh1.getC_Invoice();
+		MInvoice invoice2 = wh2.getC_Invoice();
+		
+		if (invoice1.getC_Currency_ID() < invoice2.getC_Currency_ID())
+			return -1;
+		else if (invoice1.getC_Currency_ID() > invoice2.getC_Currency_ID())
+			return 1;
+		
+		return (invoice1.get_ID() < invoice2.get_ID()) ? -1
+				: (invoice1.get_ID() == invoice2.get_ID()) ? 0 : 1;
+	}
+	
 	public static MLCOInvoiceWithholding[] getFromInvoice(Properties ctx, int C_Invoice_ID, String trxName) {
 		return new Query(ctx, Table_Name, "C_Invoice_ID = ?", trxName)
 				.setParameters(C_Invoice_ID)

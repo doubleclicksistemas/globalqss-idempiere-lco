@@ -63,6 +63,10 @@ import org.compiere.util.Env;
 import org.compiere.util.Msg;
 import org.osgi.service.event.Event;
 
+import com.ingeint.acct.INGDocLine_Allocation;
+import com.ingeint.utils.ConversionUtil;
+import com.ingeint.utils.IngeintConstants;
+
 /**
  *	Validator or Localization Colombia (Withholdings)
  *
@@ -87,6 +91,7 @@ public class LCO_ValidatorWH extends AbstractEventHandler
 		registerTableEvent(IEventTopics.PO_BEFORE_DELETE, MInvoiceLine.Table_Name);
 		registerTableEvent(IEventTopics.PO_BEFORE_NEW, X_LCO_WithholdingCalc.Table_Name);
 		registerTableEvent(IEventTopics.PO_BEFORE_CHANGE, X_LCO_WithholdingCalc.Table_Name);
+		registerTableEvent(IEventTopics.PO_BEFORE_NEW, X_LCO_WithholdingType.Table_Name);
 
 		//	Documents to be monitored
 		registerTableEvent(IEventTopics.DOC_BEFORE_PREPARE, MInvoice.Table_Name);
@@ -160,6 +165,20 @@ public class LCO_ValidatorWH extends AbstractEventHandler
 			if (lwc.isCalcOnInvoice() && lwc.isCalcOnPayment())
 				lwc.setIsCalcOnPayment(false);
 		}
+		
+		//Add validations for before new Withholding Type 30/03/2023
+		if (po instanceof X_LCO_WithholdingType
+				&& IEventTopics.PO_BEFORE_NEW.equals(type))
+		{
+			X_LCO_WithholdingType wt = (X_LCO_WithholdingType) po;
+			int C_Currency_ID = wt.get_ValueAsInt(IngeintConstants.COLUMNNAME_C_Currency_ID);
+			
+			if (C_Currency_ID <= 0)
+			{
+				C_Currency_ID = Env.getContextAsInt(wt.getCtx(), "$C_Currency_ID");
+				wt.set_ValueOfColumn(IngeintConstants.COLUMNNAME_C_Currency_ID, C_Currency_ID);
+			}
+		}
 
 		// Document Events
 		// before preparing a reversal invoice add the invoice withholding taxes
@@ -174,7 +193,7 @@ public class LCO_ValidatorWH extends AbstractEventHandler
 					String sql =
 						  "SELECT LCO_InvoiceWithholding_ID "
 						 + " FROM LCO_InvoiceWithholding "
-						+ " WHERE C_Invoice_ID = ? "
+						+ " WHERE C_Invoice_ID = ? AND ING_VoucherWithholding_ID IS NULL"
 						+ " ORDER BY LCO_InvoiceWithholding_ID";
 					try (PreparedStatement pstmt = DB.prepareStatement(sql, inv.get_TrxName());)
 					{
@@ -607,7 +626,8 @@ public class LCO_ValidatorWH extends AbstractEventHandler
 				BigDecimal tottax = new BigDecimal(0);
 
 				MAllocationLine alloc_line = alloc_lines[j];
-				DocLine_Allocation docLine = new DocLine_Allocation(alloc_line, doc);
+				INGDocLine_Allocation docLine = new INGDocLine_Allocation(alloc_line, doc);
+				
 				doc.setC_BPartner_ID(alloc_line.getC_BPartner_ID());
 
 				int inv_id = alloc_line.getC_Invoice_ID();
@@ -615,6 +635,18 @@ public class LCO_ValidatorWH extends AbstractEventHandler
 					continue;
 				MInvoice invoice = null;
 				invoice = new MInvoice (ah.getCtx(), alloc_line.getC_Invoice_ID(), ah.get_TrxName());
+				boolean dropDifference = MSysConfig.getBooleanValue(IngeintConstants.SYSCONFIG_LVE_DROP_ALLOCATION_DIFFERENCIAL, true
+						, alloc_line.getAD_Client_ID(), alloc_line.getAD_Org_ID());
+				
+				if (dropDifference && (ah.getC_Currency_ID() != as.getC_Currency_ID()
+						|| ah.getC_Currency_ID() != invoice.getC_Currency_ID()))
+				{
+					BigDecimal rate = ConversionUtil.getInvoiceRate(invoice, ah.getC_Currency_ID()
+							, as.getC_Currency_ID());
+					
+					docLine.setCurrencyRate(rate);
+				}
+				
 				if (invoice == null || invoice.getC_Invoice_ID() == 0)
 					continue;
 				String sql =
