@@ -148,7 +148,7 @@ public class MLCOInvoiceWithholding extends X_LCO_InvoiceWithholding
 						: MPriceList.getStandardPrecision(getCtx(), inv.getM_PriceList_ID());
 				
 				taxAmt = ConversionUtil.convertInvoice(taxAmt, inv, C_Currency_ID, true, stdPrecision);
-				setTaxBaseAmt(taxAmt);
+				setTaxAmt(taxAmt);
 			}
 		}
 		
