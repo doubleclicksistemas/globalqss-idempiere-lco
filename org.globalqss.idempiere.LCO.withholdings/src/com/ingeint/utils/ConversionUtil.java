@@ -43,7 +43,7 @@ public class ConversionUtil {
 		{
 			//BigDecimal retValue = amount.multiply(invoice.getCurrencyRate());
 			BigDecimal retValue = toInvoiceCurrency
-					? amount.divide(invoice.getCurrencyRate(), RoundingMode.HALF_UP)
+					? amount.divide(invoice.getCurrencyRate(), precision, RoundingMode.HALF_UP)
 					: amount.multiply(invoice.getCurrencyRate());
 			
 			if (retValue.scale() > precision)
