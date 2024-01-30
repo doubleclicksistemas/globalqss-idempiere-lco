@@ -17,8 +17,25 @@ public class ConversionUtil {
 	
 	public static BigDecimal getInvoiceRate(MInvoice invoice, int C_CurrFrom_ID, int C_CurrTo_ID) {
 		
-		if (invoice.getC_Currency_ID() == C_CurrTo_ID)
+		if (C_CurrFrom_ID == C_CurrTo_ID)
 			return BigDecimal.ONE;
+		
+		int CurrencySchema_ID = Env.getContextAsInt(invoice.getCtx(), Env.C_CURRENCY_ID);
+		int C_CurrencyTo_ID = invoice.get_ValueAsInt(IngeintConstants.COLUMNNAME_C_CurrencyTo_ID);
+		
+		if (invoice.getC_Currency_ID() == C_CurrFrom_ID
+				&& invoice.getC_Currency_ID() != CurrencySchema_ID
+				&& C_CurrTo_ID == CurrencySchema_ID
+				&& invoice.isOverrideCurrencyRate()
+				&& invoice.getCurrencyRate() != null
+				&& invoice.getCurrencyRate().signum() > 0
+			|| invoice.getC_Currency_ID() == C_CurrFrom_ID
+				&& C_CurrFrom_ID == CurrencySchema_ID
+				&& C_CurrTo_ID == C_CurrencyTo_ID
+				&& invoice.isOverrideCurrencyRate()
+				&& invoice.getCurrencyRate() != null
+				&& invoice.getCurrencyRate().signum() > 0)
+			return invoice.getCurrencyRate();
 		
 		return MConversionRate.getRate(C_CurrFrom_ID, C_CurrTo_ID
 				, invoice.getDateAcct(), invoice.getC_ConversionType_ID()
