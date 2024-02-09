@@ -131,7 +131,7 @@ public class MLCOInvoiceWithholding extends X_LCO_InvoiceWithholding
 						? MPriceList.getPricePrecision(getCtx(), inv.getM_PriceList_ID())
 						: MPriceList.getStandardPrecision(getCtx(), inv.getM_PriceList_ID());
 				
-				taxBaseAmt = ConversionUtil.convertInvoice(taxBaseAmt, inv, C_Currency_ID, true, stdPrecision);
+				taxBaseAmt = ConversionUtil.convertInvoice(taxBaseAmt, inv, C_Currency_ID, true, inv.getDateInvoiced(), stdPrecision);
 				setTaxBaseAmt(taxBaseAmt);
 			}
 			
@@ -147,7 +147,7 @@ public class MLCOInvoiceWithholding extends X_LCO_InvoiceWithholding
 						? MPriceList.getPricePrecision(getCtx(), inv.getM_PriceList_ID())
 						: MPriceList.getStandardPrecision(getCtx(), inv.getM_PriceList_ID());
 				
-				taxAmt = ConversionUtil.convertInvoice(taxAmt, inv, C_Currency_ID, true, stdPrecision);
+				taxAmt = ConversionUtil.convertInvoice(taxAmt, inv, C_Currency_ID, true, inv.getDateInvoiced(), stdPrecision);
 				setTaxAmt(taxAmt);
 			}
 		}
