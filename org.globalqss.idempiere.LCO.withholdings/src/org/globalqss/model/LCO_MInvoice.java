@@ -381,7 +381,7 @@ public class LCO_MInvoice extends MInvoice
 				if (getC_Currency_ID() != C_WithholdingTypeCurrency_ID
 						&& base != null)
 				{
-					base = ConversionUtil.convertInvoice(base, this, C_WithholdingTypeCurrency_ID, false, stdPrecision);
+					base = ConversionUtil.convertInvoice(base, this, C_WithholdingTypeCurrency_ID, false, getDateInvoiced(), stdPrecision);
 					
 					if (base == null)
 						throw new NoCurrencyConversionException(getC_Currency_ID(), C_WithholdingTypeCurrency_ID
@@ -424,8 +424,11 @@ public class LCO_MInvoice extends MInvoice
 					iwh.set_ValueOfColumn(IngeintConstants.COLUMNNAME_ConvertedTaxAmt, taxamt);
 					iwh.set_ValueOfColumn(IngeintConstants.COLUMNNAME_ConvertedTaxBaseAmt, base);
 					
-					taxamt = ConversionUtil.convertInvoice(taxamt, this, C_WithholdingTypeCurrency_ID, true, stdPrecision);
-					base = ConversionUtil.convertInvoice(base, this, C_WithholdingTypeCurrency_ID, true, stdPrecision);
+					taxamt = ConversionUtil.convertInvoice(taxamt, this, C_WithholdingTypeCurrency_ID, true
+							, getDateInvoiced(), stdPrecision);
+					
+					base = ConversionUtil.convertInvoice(base, this, C_WithholdingTypeCurrency_ID, true
+							, getDateInvoiced(), stdPrecision);
 					
 					iwh.setTaxAmt(taxamt);
 					iwh.setTaxBaseAmt(base);

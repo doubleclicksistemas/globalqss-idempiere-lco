@@ -29,6 +29,7 @@ import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.logging.Level;
 
@@ -38,7 +39,6 @@ import org.adempiere.base.event.IEventManager;
 import org.adempiere.base.event.IEventTopics;
 import org.adempiere.base.event.LoginEventData;
 import org.compiere.acct.Doc;
-import org.compiere.acct.DocLine_Allocation;
 import org.compiere.acct.DocTax;
 import org.compiere.acct.Fact;
 import org.compiere.acct.FactLine;
@@ -638,11 +638,19 @@ public class LCO_ValidatorWH extends AbstractEventHandler
 				boolean dropDifference = MSysConfig.getBooleanValue(IngeintConstants.SYSCONFIG_LVE_DROP_ALLOCATION_DIFFERENCIAL, true
 						, alloc_line.getAD_Client_ID(), alloc_line.getAD_Org_ID());
 				
+				boolean postDocumentDate = MSysConfig.getBooleanValue(IngeintConstants.SYSCONFIG_POST_DOCUMENT_DATE
+						, true, invoice.getAD_Client_ID());
+				
+				Timestamp convDate = postDocumentDate ? invoice.getDateInvoiced() : invoice.getDateAcct();
+				
 				if (dropDifference && (ah.getC_Currency_ID() != as.getC_Currency_ID()
 						|| ah.getC_Currency_ID() != invoice.getC_Currency_ID()))
 				{
-					BigDecimal rate = ConversionUtil.getInvoiceRate(invoice, ah.getC_Currency_ID()
-							, as.getC_Currency_ID());
+					/*BigDecimal rate = ConversionUtil.getInvoiceRate(invoice, ah.getC_Currency_ID()
+							, as.getC_Currency_ID());*/
+					BigDecimal rate = ConversionUtil.currencyRateInvoice(ah.getCtx(), invoice.get_ID()
+							, ah.getC_Currency_ID(), as.getC_Currency_ID()
+							, convDate, ah.get_TrxName());
 					
 					docLine.setCurrencyRate(rate);
 				}
@@ -739,7 +747,17 @@ public class LCO_ValidatorWH extends AbstractEventHandler
 
 					if (! foundflwriteoff) {
 						// Create a new line - never expected to arrive here as it must always be a write-off line
-						DocLine_Allocation line = new DocLine_Allocation(alloc_line, doc);
+						INGDocLine_Allocation line = new INGDocLine_Allocation(alloc_line, doc);
+						
+						if (dropDifference && (ah.getC_Currency_ID() != as.getC_Currency_ID()
+								|| ah.getC_Currency_ID() != invoice.getC_Currency_ID()))
+						{
+							BigDecimal rate = ConversionUtil.getInvoiceRate(invoice, ah.getC_Currency_ID()
+									, as.getC_Currency_ID());
+							
+							line.setCurrencyRate(rate);
+						}
+						
 						FactLine fl = null;
 						if (invoice.isSOTrx()) {
 							fl = fact.createLine (line, doc.getAccount(Doc.ACCTTYPE_WriteOff, as),
