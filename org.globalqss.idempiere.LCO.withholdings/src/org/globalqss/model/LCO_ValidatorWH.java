@@ -31,6 +31,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Level;
 
 import org.adempiere.base.event.AbstractEventHandler;
@@ -61,6 +62,7 @@ import org.compiere.util.CLogger;
 import org.compiere.util.DB;
 import org.compiere.util.Env;
 import org.compiere.util.Msg;
+import org.compiere.util.Util;
 import org.osgi.service.event.Event;
 
 import com.ingeint.acct.INGDocLine_Allocation;
@@ -236,6 +238,16 @@ public class LCO_ValidatorWH extends AbstractEventHandler
 				if (inv.get_Value("WithholdingAmt") == null) {
 					MDocType dt = new MDocType(inv.getCtx(), inv.getC_DocTypeTarget_ID(), inv.get_TrxName());
 					String genwh = dt.get_ValueAsString("GenerateWithholding");
+					
+					//Add support for overwrite generate withholding from invoice [3126]
+					if ("Y".equals(genwh))
+					{
+						genwh = Optional.ofNullable(inv.get_ValueAsString(IngeintConstants.COLUMNNAME_GenWithholding))
+								.filter(g -> !Util.isEmpty(g))
+								.orElse(dt.get_ValueAsString(IngeintConstants.COLUMNNAME_GenerateWithholding));
+					}
+					//End of [3126]
+					
 					if (genwh != null) {
 
 						if (genwh.equals("Y")) {

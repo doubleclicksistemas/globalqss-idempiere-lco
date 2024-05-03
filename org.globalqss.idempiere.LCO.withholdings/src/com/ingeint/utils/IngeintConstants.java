@@ -15,6 +15,8 @@ public class IngeintConstants {
 	public static final String COLUMNNAME_ConversionRate = "ConversionRate";
 	public static final String COLUMNNAME_WriteOffInvoice = "WriteOffInvoice";
 	public static final String COLUMNNAME_WriteOffPayment = "WriteOffPayment";
+	public static final String COLUMNNAME_GenWithholding = "GenWithholding";
+	public static final String COLUMNNAME_GenerateWithholding = "GenerateWithholding";
 	
 	//--------------------------------------------------Sys Configs----------------------------------------------------------------
 	public static final String SYSCONFIG_LVE_GENERATE_WITHHOLDINGS_WITH_LIST_PRECISION = "LVE_GENERATE_WITHHOLDINGS_WITH_LIST_PRECISION";

@@ -30,6 +30,7 @@ import java.sql.ResultSet;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Properties;
 
 import org.compiere.model.MBPartner;
@@ -48,6 +49,7 @@ import org.compiere.model.MTax;
 import org.compiere.model.Query;
 import org.compiere.util.DB;
 import org.compiere.util.Env;
+import org.compiere.util.Util;
 import org.idempiere.exceptions.NoCurrencyConversionException;
 
 import com.ingeint.utils.ConversionUtil;
@@ -107,6 +109,16 @@ public class LCO_MInvoice extends MInvoice
 
 		MDocType dt = new MDocType(getCtx(), getC_DocTypeTarget_ID(), get_TrxName());
 		String genwh = dt.get_ValueAsString("GenerateWithholding");
+		
+		//Add support for overwrite generate withholding from invoice [3126]
+		if ("Y".equals(genwh))
+		{
+			genwh = Optional.ofNullable(get_ValueAsString(IngeintConstants.COLUMNNAME_GenWithholding))
+					.filter(g -> !Util.isEmpty(g))
+					.orElse(dt.get_ValueAsString(IngeintConstants.COLUMNNAME_GenerateWithholding));
+		}
+		//End of [3126]
+		
 		if (genwh == null || genwh.equals("N"))
 			return 0;
 
