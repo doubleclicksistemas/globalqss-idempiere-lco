@@ -22,6 +22,8 @@ public class IngeintConstants {
 	public static final String SYSCONFIG_PRECISION_RATE = "PRECISION_RATE";
 	public static final String SYSCONFIG_POST_DOCUMENT_DATE = "POST_DOCUMENT_DATE";
 	
+	public static final String ATTRIBUTE_TESTALLOCATION = "TESTALLOCATION";
+	
 	public static BigDecimal getvalueAsBigDecimal(PO po, String columnName) {
 		return Optional.ofNullable((BigDecimal) po.get_Value(columnName))
 				.orElse(BigDecimal.ZERO);
