@@ -255,8 +255,12 @@ public class MLCOInvoiceWithholding extends X_LCO_InvoiceWithholding
 	
 	@Override
 	public MInvoice getC_Invoice() throws RuntimeException {
-		
-		if (m_invoice != null && getC_Invoice_ID() != m_invoice.get_ID())
+		return getC_Invoice(false);
+	}
+	
+	public MInvoice getC_Invoice(boolean requery) {
+		if (requery
+				|| m_invoice != null && getC_Invoice_ID() != m_invoice.get_ID())
 			m_invoice = null;
 		
 		if (m_invoice == null && getC_Invoice_ID() > 0)

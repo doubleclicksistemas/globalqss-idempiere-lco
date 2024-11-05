@@ -218,14 +218,10 @@ public class ConversionUtil {
 		}
 	}
 	
-	public static BigDecimal currencyRateInvoice(Properties ctx, int C_Invoice_ID
-			, int C_CurrFrom_ID, int C_CurrTo_ID, Timestamp date, String trxName) {
-		if (C_CurrFrom_ID == C_CurrTo_ID)
-			return BigDecimal.ONE;
+	public static BigDecimal currencyRateInvoice(MInvoice invoice, int C_CurrFrom_ID
+			, int C_CurrTo_ID, Timestamp date) {
 		
-		MInvoice invoice = new MInvoice(ctx, C_Invoice_ID, trxName);
-		
-		int baseCurrencyId = Env.getContextAsInt(ctx, Env.C_CURRENCY_ID);
+		int baseCurrencyId = Env.getContextAsInt(invoice.getCtx(), Env.C_CURRENCY_ID);
 		int C_CurrencyTo_ID = invoice.get_ValueAsInt(IngeintConstants.COLUMNNAME_C_CurrencyTo_ID);
 		BigDecimal conversionRate = (BigDecimal) invoice.get_Value(IngeintConstants.COLUMNNAME_ConversionRate);
 		
@@ -272,6 +268,16 @@ public class ConversionUtil {
 					, date, invoice.getC_ConversionType_ID()
 					, invoice.getAD_Client_ID(), invoice.getAD_Org_ID());
 		}
+	}
+	
+	public static BigDecimal currencyRateInvoice(Properties ctx, int C_Invoice_ID
+			, int C_CurrFrom_ID, int C_CurrTo_ID, Timestamp date, String trxName) {
+		if (C_CurrFrom_ID == C_CurrTo_ID)
+			return BigDecimal.ONE;
+		
+		MInvoice invoice = new MInvoice(ctx, C_Invoice_ID, trxName);
+		
+		return currencyRateInvoice(invoice, C_CurrFrom_ID, C_CurrTo_ID, date);
 	}
 	
 	public static BigDecimal currencyConvertInvoice(Properties ctx, int C_Invoice_ID
@@ -446,5 +452,14 @@ public class ConversionUtil {
 			retValue = retValue.setScale(precision, RoundingMode.HALF_UP);
 		
 		return retValue;
+	}
+	
+	public static BigDecimal multiply(BigDecimal n1, BigDecimal n2, int scale) {
+		BigDecimal result = n1.multiply(n2);
+		
+		if (result.scale() > scale)
+			result = result.setScale(scale, RoundingMode.HALF_UP);
+		
+		return result;
 	}
 }
