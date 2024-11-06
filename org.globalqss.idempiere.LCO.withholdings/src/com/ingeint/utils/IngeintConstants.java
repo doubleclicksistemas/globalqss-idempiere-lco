@@ -25,6 +25,10 @@ public class IngeintConstants {
 	public static final String COLUMNNAME_Aliquote = "Aliquote";
 	public static final String COLUMNNAME_TotalBaseAmt = "TotalBaseAmt";
 	public static final String COLUMNNAME_TotalBaseAmtCurrency = "TotalBaseAmtCurrency";
+	public static final String COLUMNNAME_AmountCurrency = "AmountCurrency";
+	public static final String COLUMNNAME_DiscountAmCurrency = "DiscountAmCurrency";
+	public static final String COLUMNNAME_OverUnderAmtCurrency = "OverUnderAmtCurrency";
+	public static final String COLUMNNAME_WriteOffAmtCurrency = "WriteOffAmtCurrency";
 	
 	//--------------------------------------------------Sys Configs----------------------------------------------------------------
 	public static final String SYSCONFIG_LVE_GENERATE_WITHHOLDINGS_WITH_LIST_PRECISION = "LVE_GENERATE_WITHHOLDINGS_WITH_LIST_PRECISION";
