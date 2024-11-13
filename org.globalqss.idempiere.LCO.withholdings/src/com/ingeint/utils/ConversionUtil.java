@@ -161,14 +161,10 @@ public class ConversionUtil {
 		}
 	}
 	
-	public static BigDecimal getPaymentCurrencyRate(Properties ctx, int C_Payment_ID
-			, int C_CurrFrom_ID, int C_CurrTo_ID, Timestamp date, String trxName) {
-		if (C_CurrFrom_ID == C_CurrTo_ID)
-			return BigDecimal.ONE;
+	public static BigDecimal getPaymentCurrencyRate(MPayment payment, int C_CurrFrom_ID
+			, int C_CurrTo_ID, Timestamp date) {
 		
-		MPayment payment = new MPayment(ctx, C_Payment_ID, trxName);
-		
-		int baseCurrencyId = Env.getContextAsInt(ctx, Env.C_CURRENCY_ID);
+		int baseCurrencyId = Env.getContextAsInt(payment.getCtx(), Env.C_CURRENCY_ID);
 		int C_CurrencyTo_ID = payment.get_ValueAsInt(IngeintConstants.COLUMNNAME_C_CurrencyTo_ID);
 		BigDecimal conversionRate = (BigDecimal) payment.get_Value(IngeintConstants.COLUMNNAME_ConversionRate);
 		
@@ -216,6 +212,16 @@ public class ConversionUtil {
 					, date, payment.getC_ConversionType_ID()
 					, payment.getAD_Client_ID(), payment.getAD_Org_ID());
 		}
+	}
+	
+	public static BigDecimal getPaymentCurrencyRate(Properties ctx, int C_Payment_ID
+			, int C_CurrFrom_ID, int C_CurrTo_ID, Timestamp date, String trxName) {
+		if (C_CurrFrom_ID == C_CurrTo_ID)
+			return BigDecimal.ONE;
+		
+		MPayment payment = new MPayment(ctx, C_Payment_ID, trxName);
+		
+		return getPaymentCurrencyRate(payment, C_CurrFrom_ID, C_CurrTo_ID, date);
 	}
 	
 	public static BigDecimal currencyRateInvoice(MInvoice invoice, int C_CurrFrom_ID
@@ -279,6 +285,8 @@ public class ConversionUtil {
 		
 		return currencyRateInvoice(invoice, C_CurrFrom_ID, C_CurrTo_ID, date);
 	}
+	
+	
 	
 	public static BigDecimal currencyConvertInvoice(Properties ctx, int C_Invoice_ID
 			, BigDecimal amount, int C_CurrFrom_ID
