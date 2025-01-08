@@ -168,54 +168,7 @@ public class ConversionUtil {
 		
 		MPayment payment = new MPayment(ctx, C_Payment_ID, trxName);
 		
-		int baseCurrencyId = Env.getContextAsInt(ctx, Env.C_CURRENCY_ID);
-		int C_CurrencyTo_ID = payment.get_ValueAsInt(IngeintConstants.COLUMNNAME_C_CurrencyTo_ID);
-		BigDecimal conversionRate = (BigDecimal) payment.get_Value(IngeintConstants.COLUMNNAME_ConversionRate);
-		
-		//Evaluatee Override Multiply Rate
-		if (payment.getC_Currency_ID() == C_CurrFrom_ID
-				&& payment.getC_Currency_ID() != baseCurrencyId
-				&& C_CurrTo_ID == baseCurrencyId
-				&& payment.isOverrideCurrencyRate()
-				&& payment.getCurrencyRate() != null
-				&& payment.getCurrencyRate().signum() > 0
-			|| payment.getC_Currency_ID() == C_CurrFrom_ID
-				&& payment.getC_Currency_ID() == baseCurrencyId
-				&& C_CurrTo_ID == C_CurrencyTo_ID
-				&& payment.isOverrideCurrencyRate()
-				&& payment.getCurrencyRate() != null
-				&& payment.getCurrencyRate().signum() > 0)
-		{
-			return payment.getCurrencyRate();
-		}
-		//Evaluate Divide Override Rate
-		else if (payment.getC_Currency_ID() != baseCurrencyId
-				&& C_CurrFrom_ID == baseCurrencyId
-				&& C_CurrTo_ID == payment.getC_Currency_ID()
-				&& payment.isOverrideCurrencyRate()
-				&& payment.getCurrencyRate() != null
-				&& payment.getCurrencyRate().signum() > 0)
-		{
-			int precision = MSysConfig.getIntValue(IngeintConstants.SYSCONFIG_PRECISION_RATE, 12
-					, payment.getAD_Client_ID(), payment.getAD_Org_ID());
-			
-			return BigDecimal.ONE.divide(payment.getCurrencyRate(), precision, RoundingMode.HALF_UP);
-		}
-		else if (payment.getC_Currency_ID() == baseCurrencyId
-				&& C_CurrFrom_ID == C_CurrencyTo_ID
-				&& C_CurrTo_ID == baseCurrencyId
-				&& payment.isOverrideCurrencyRate()
-				&& conversionRate != null
-				&& conversionRate.signum() > 0)
-		{
-			return conversionRate;
-		}
-		else
-		{
-			return MConversionRate.getRate(C_CurrFrom_ID, C_CurrTo_ID
-					, date, payment.getC_ConversionType_ID()
-					, payment.getAD_Client_ID(), payment.getAD_Org_ID());
-		}
+		return getPaymentCurrencyRate(payment, C_CurrFrom_ID, C_CurrTo_ID, date);
 	}
 	
 	public static BigDecimal currencyRateInvoice(Properties ctx, int C_Invoice_ID
@@ -225,53 +178,7 @@ public class ConversionUtil {
 		
 		MInvoice invoice = new MInvoice(ctx, C_Invoice_ID, trxName);
 		
-		int baseCurrencyId = Env.getContextAsInt(ctx, Env.C_CURRENCY_ID);
-		int C_CurrencyTo_ID = invoice.get_ValueAsInt(IngeintConstants.COLUMNNAME_C_CurrencyTo_ID);
-		BigDecimal conversionRate = (BigDecimal) invoice.get_Value(IngeintConstants.COLUMNNAME_ConversionRate);
-		
-		//Multiply Conditions
-		if (invoice.getC_Currency_ID() == C_CurrFrom_ID
-				&& invoice.getC_Currency_ID() != baseCurrencyId
-				&& C_CurrTo_ID == baseCurrencyId
-				&& invoice.isOverrideCurrencyRate()
-				&& invoice.getCurrencyRate() != null
-				&& invoice.getCurrencyRate().signum() > 0
-			|| invoice.getC_Currency_ID() == C_CurrFrom_ID
-				&& invoice.getC_Currency_ID() == baseCurrencyId
-				&& C_CurrTo_ID == C_CurrencyTo_ID
-				&& invoice.isOverrideCurrencyRate()
-				&& invoice.getCurrencyRate() != null
-				&& invoice.getCurrencyRate().signum() > 0)
-		{
-			return invoice.getCurrencyRate();
-		}
-		//Divide Conditions Inversal Override
-		else if (invoice.getC_Currency_ID() != baseCurrencyId
-				&& C_CurrFrom_ID == baseCurrencyId
-				&& C_CurrTo_ID == invoice.getC_Currency_ID()
-				&& invoice.isOverrideCurrencyRate()
-				&& invoice.getCurrencyRate() != null
-				&& invoice.getCurrencyRate().signum()> 0)
-		{
-			int precision = MSysConfig.getIntValue(IngeintConstants.SYSCONFIG_PRECISION_RATE, 12
-					, invoice.getAD_Client_ID(), invoice.getAD_Org_ID());
-			return BigDecimal.ONE.divide(invoice.getCurrencyRate(), precision, RoundingMode.HALF_UP);
-		}
-		else if (invoice.getC_Currency_ID() == baseCurrencyId
-				&& C_CurrFrom_ID == C_CurrencyTo_ID
-				&& C_CurrTo_ID == baseCurrencyId
-				&& invoice.isOverrideCurrencyRate()
-				&& conversionRate != null
-				&& conversionRate.signum() > 0)
-		{
-			return conversionRate;
-		}
-		else
-		{
-			return MConversionRate.getRate(C_CurrFrom_ID, C_CurrTo_ID
-					, date, invoice.getC_ConversionType_ID()
-					, invoice.getAD_Client_ID(), invoice.getAD_Org_ID());
-		}
+		return currencyRateInvoice(invoice, C_CurrFrom_ID, C_CurrTo_ID, date);
 	}
 	
 	public static BigDecimal currencyConvertInvoice(Properties ctx, int C_Invoice_ID
@@ -446,5 +353,110 @@ public class ConversionUtil {
 			retValue = retValue.setScale(precision, RoundingMode.HALF_UP);
 		
 		return retValue;
+	}
+	
+	public static BigDecimal currencyRateInvoice(MInvoice invoice, int C_CurrFrom_ID
+			, int C_CurrTo_ID, Timestamp date) {
+		
+		int baseCurrencyId = Env.getContextAsInt(invoice.getCtx(), Env.C_CURRENCY_ID);
+		int C_CurrencyTo_ID = invoice.get_ValueAsInt(IngeintConstants.COLUMNNAME_C_CurrencyTo_ID);
+		BigDecimal conversionRate = (BigDecimal) invoice.get_Value(IngeintConstants.COLUMNNAME_ConversionRate);
+		
+		//Multiply Conditions
+		if (invoice.getC_Currency_ID() == C_CurrFrom_ID
+				&& invoice.getC_Currency_ID() != baseCurrencyId
+				&& C_CurrTo_ID == baseCurrencyId
+				&& invoice.isOverrideCurrencyRate()
+				&& invoice.getCurrencyRate() != null
+				&& invoice.getCurrencyRate().signum() > 0
+			|| invoice.getC_Currency_ID() == C_CurrFrom_ID
+				&& invoice.getC_Currency_ID() == baseCurrencyId
+				&& C_CurrTo_ID == C_CurrencyTo_ID
+				&& invoice.isOverrideCurrencyRate()
+				&& invoice.getCurrencyRate() != null
+				&& invoice.getCurrencyRate().signum() > 0)
+		{
+			return invoice.getCurrencyRate();
+		}
+		//Divide Conditions Inversal Override
+		else if (invoice.getC_Currency_ID() != baseCurrencyId
+				&& C_CurrFrom_ID == baseCurrencyId
+				&& C_CurrTo_ID == invoice.getC_Currency_ID()
+				&& invoice.isOverrideCurrencyRate()
+				&& invoice.getCurrencyRate() != null
+				&& invoice.getCurrencyRate().signum()> 0)
+		{
+			int precision = MSysConfig.getIntValue(IngeintConstants.SYSCONFIG_PRECISION_RATE, 12
+					, invoice.getAD_Client_ID(), invoice.getAD_Org_ID());
+			return BigDecimal.ONE.divide(invoice.getCurrencyRate(), precision, RoundingMode.HALF_UP);
+		}
+		else if (invoice.getC_Currency_ID() == baseCurrencyId
+				&& C_CurrFrom_ID == C_CurrencyTo_ID
+				&& C_CurrTo_ID == baseCurrencyId
+				&& invoice.isOverrideCurrencyRate()
+				&& conversionRate != null
+				&& conversionRate.signum() > 0)
+		{
+			return conversionRate;
+		}
+		else
+		{
+			return MConversionRate.getRate(C_CurrFrom_ID, C_CurrTo_ID
+					, date, invoice.getC_ConversionType_ID()
+					, invoice.getAD_Client_ID(), invoice.getAD_Org_ID());
+		}
+	}
+	
+	public static BigDecimal getPaymentCurrencyRate(MPayment payment, int C_CurrFrom_ID
+			, int C_CurrTo_ID, Timestamp date) {
+		
+		int baseCurrencyId = Env.getContextAsInt(payment.getCtx(), Env.C_CURRENCY_ID);
+		int C_CurrencyTo_ID = payment.get_ValueAsInt(IngeintConstants.COLUMNNAME_C_CurrencyTo_ID);
+		BigDecimal conversionRate = (BigDecimal) payment.get_Value(IngeintConstants.COLUMNNAME_ConversionRate);
+		
+		//Evaluatee Override Multiply Rate
+		if (payment.getC_Currency_ID() == C_CurrFrom_ID
+				&& payment.getC_Currency_ID() != baseCurrencyId
+				&& C_CurrTo_ID == baseCurrencyId
+				&& payment.isOverrideCurrencyRate()
+				&& payment.getCurrencyRate() != null
+				&& payment.getCurrencyRate().signum() > 0
+			|| payment.getC_Currency_ID() == C_CurrFrom_ID
+				&& payment.getC_Currency_ID() == baseCurrencyId
+				&& C_CurrTo_ID == C_CurrencyTo_ID
+				&& payment.isOverrideCurrencyRate()
+				&& payment.getCurrencyRate() != null
+				&& payment.getCurrencyRate().signum() > 0)
+		{
+			return payment.getCurrencyRate();
+		}
+		//Evaluate Divide Override Rate
+		else if (payment.getC_Currency_ID() != baseCurrencyId
+				&& C_CurrFrom_ID == baseCurrencyId
+				&& C_CurrTo_ID == payment.getC_Currency_ID()
+				&& payment.isOverrideCurrencyRate()
+				&& payment.getCurrencyRate() != null
+				&& payment.getCurrencyRate().signum() > 0)
+		{
+			int precision = MSysConfig.getIntValue(IngeintConstants.SYSCONFIG_PRECISION_RATE, 12
+					, payment.getAD_Client_ID(), payment.getAD_Org_ID());
+			
+			return BigDecimal.ONE.divide(payment.getCurrencyRate(), precision, RoundingMode.HALF_UP);
+		}
+		else if (payment.getC_Currency_ID() == baseCurrencyId
+				&& C_CurrFrom_ID == C_CurrencyTo_ID
+				&& C_CurrTo_ID == baseCurrencyId
+				&& payment.isOverrideCurrencyRate()
+				&& conversionRate != null
+				&& conversionRate.signum() > 0)
+		{
+			return conversionRate;
+		}
+		else
+		{
+			return MConversionRate.getRate(C_CurrFrom_ID, C_CurrTo_ID
+					, date, payment.getC_ConversionType_ID()
+					, payment.getAD_Client_ID(), payment.getAD_Org_ID());
+		}
 	}
 }
