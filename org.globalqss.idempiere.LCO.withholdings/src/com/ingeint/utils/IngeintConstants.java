@@ -40,6 +40,7 @@ public class IngeintConstants {
 	public static final String SYSCONFIG_POST_DOCUMENT_DATE = "POST_DOCUMENT_DATE";
 	public static final String SYSCONFIG_CONVERTED_CURRENCY = "CONVERTED_CURRENCY";
 	public static final String SYSCONFIG_DIFFERENCIAL_CHARGE = "DIFFERENCIAL_CHARGE";
+	public static final String SYSCONFIG_PAYMENT_PRECISION = "PAYMENT_PRECISION";
 	
 	public static final String ATTRIBUTE_TESTALLOCATION = "TESTALLOCATION";
 	public static final String ATTRIBUTE_RECHECKLINES = "RECHECKLINES";
