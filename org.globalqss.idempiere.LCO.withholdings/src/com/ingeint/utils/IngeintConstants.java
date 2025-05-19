@@ -30,6 +30,8 @@ public class IngeintConstants {
 	public static final String COLUMNNAME_OverUnderAmtCurrency = "OverUnderAmtCurrency";
 	public static final String COLUMNNAME_WriteOffAmtCurrency = "WriteOffAmtCurrency";
 	public static final String COLUMNNAME_AmountCurrencyPayment = "AmountCurrencyPayment";
+	public static final String COLUMNNAME_IsUseInvoiceRate = "IsUseInvoiceRate";
+	public static final String COLUMNNAME_IsPrincipalCurrency = "IsPrincipalCurrency";
 	
 	//--------------------------------------------------Sys Configs----------------------------------------------------------------
 	public static final String SYSCONFIG_LVE_GENERATE_WITHHOLDINGS_WITH_LIST_PRECISION = "LVE_GENERATE_WITHHOLDINGS_WITH_LIST_PRECISION";
