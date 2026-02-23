@@ -128,11 +128,11 @@ public class LCO_MInvoice extends MInvoice
 		// [ADD] By José Castañeda [1729]
 		MBPartner alternativePartner = null;
 		
-		int ING_AlterlativePartner_ID = get_ValueAsInt(IngeintConstants.COLUMNNAME_AlternativePartner);
+		int ING_AlternativePartner_ID = get_ValueAsInt(IngeintConstants.COLUMNNAME_AlternativePartner);
 		
 		if(get_ValueAsBoolean(IngeintConstants.COLUMNNAME_IsAlternativePartner) 
-				&& ING_AlterlativePartner_ID > 0)
-			alternativePartner = new MBPartner(getCtx(), ING_AlterlativePartner_ID, get_TrxName());
+				&& ING_AlternativePartner_ID > 0)
+			alternativePartner = new MBPartner(getCtx(), ING_AlternativePartner_ID, get_TrxName());
 		
 		int alt_ISIC_ID = alternativePartner != null ? alternativePartner.get_ValueAsInt("LCO_ISIC_ID") : 0;
 		int alt_TaxPayerType_ID = alternativePartner != null ? alternativePartner.get_ValueAsInt("LCO_TaxPayerType_ID") : 0;
@@ -179,7 +179,7 @@ public class LCO_MInvoice extends MInvoice
 			int ISIC_ID = bp_isic_id;
 			int TaxPayerType_ID = bp_taxpayertype_id;
 			
-			if(ING_AlterlativePartner_ID > 0 
+			if(ING_AlternativePartner_ID > 0 
 					&& !Util.isEmpty(wtType, true) 
 					&& wtType.toUpperCase().equals("IVA")) {
 				ISIC_ID = alt_ISIC_ID;
