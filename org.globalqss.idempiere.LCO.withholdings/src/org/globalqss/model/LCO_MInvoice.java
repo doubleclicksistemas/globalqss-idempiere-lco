@@ -48,6 +48,7 @@ import org.compiere.model.MTax;
 import org.compiere.model.Query;
 import org.compiere.util.DB;
 import org.compiere.util.Env;
+import org.compiere.util.Util;
 import org.idempiere.exceptions.NoCurrencyConversionException;
 
 import com.ingeint.utils.ConversionUtil;
@@ -123,6 +124,20 @@ public class LCO_MInvoice extends MInvoice
 		// Fill variables normally needed
 		// BP variables
 		MBPartner bp = new MBPartner(getCtx(), getC_BPartner_ID(), get_TrxName());
+		
+		// [ADD] By José Castañeda [1729]
+		MBPartner alternativePartner = null;
+		
+		int ING_AlterlativePartner_ID = get_ValueAsInt(IngeintConstants.COLUMNNAME_AlternativePartner);
+		
+		if(get_ValueAsBoolean(IngeintConstants.COLUMNNAME_IsAlternativePartner) 
+				&& ING_AlterlativePartner_ID > 0)
+			alternativePartner = new MBPartner(getCtx(), ING_AlterlativePartner_ID, get_TrxName());
+		
+		int alt_ISIC_ID = alternativePartner.get_ValueAsInt("LCO_ISIC_ID");
+		int alt_TaxPayerType_ID = alternativePartner.get_ValueAsInt("LCO_TaxPayerType_ID");
+		//
+		
 		int bp_isic_id = bp.get_ValueAsInt("LCO_ISIC_ID");
 		int bp_taxpayertype_id = bp.get_ValueAsInt("LCO_TaxPayerType_ID");
 		MBPartnerLocation mbpl = new MBPartnerLocation(getCtx(), getC_BPartner_Location_ID(), get_TrxName());
@@ -158,6 +173,20 @@ public class LCO_MInvoice extends MInvoice
 				continue;
 			}
 			
+			// [ADD] By José Castañeda [1729]
+			String wtType = wt.get_ValueAsString(IngeintConstants.COLUMNNAME_WihthondingType);
+			
+			int ISIC_ID = bp_isic_id;
+			int TaxPayerType_ID = bp_taxpayertype_id;
+			
+			if(ING_AlterlativePartner_ID > 0 
+					&& !Util.isEmpty(wtType, true) 
+					&& wtType.toUpperCase().equals("IVA")) {
+				ISIC_ID = alt_ISIC_ID;
+				TaxPayerType_ID = alt_TaxPayerType_ID;
+			}
+			//
+			
 			// look for applicable rules according to config fields (rule)
 			StringBuffer wherer = new StringBuffer(" LCO_WithholdingType_ID=? AND ValidFrom<=? ");
 			List<Object> paramsr = new ArrayList<Object>();
@@ -165,11 +194,11 @@ public class LCO_MInvoice extends MInvoice
 			paramsr.add(getDateInvoiced());
 			if (wrc.isUseBPISIC()) {
 				wherer.append(" AND LCO_BP_ISIC_ID=? ");
-				paramsr.add(bp_isic_id);
+				paramsr.add(ISIC_ID);
 			}
 			if (wrc.isUseBPTaxPayerType()) {
 				wherer.append(" AND LCO_BP_TaxPayerType_ID=? ");
-				paramsr.add(bp_taxpayertype_id);
+				paramsr.add(TaxPayerType_ID);
 			}
 			if (wrc.isUseOrgISIC()) {
 				wherer.append(" AND LCO_Org_ISIC_ID=? ");

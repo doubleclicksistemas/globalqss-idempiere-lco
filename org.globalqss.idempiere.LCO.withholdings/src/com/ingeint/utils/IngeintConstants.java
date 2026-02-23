@@ -33,6 +33,9 @@ public class IngeintConstants {
 	public static final String COLUMNNAME_IsUseInvoiceRate = "IsUseInvoiceRate";
 	public static final String COLUMNNAME_IsPrincipalCurrency = "IsPrincipalCurrency";
 	public static final String COLUMNNAME_IsGenerateDebitNote = "IsGenerateDebitNote";
+	public static final String COLUMNNAME_IsAlternativePartner = "IsAlternativePartner";
+	public static final String COLUMNNAME_AlternativePartner = "ING_AlternativePartner_ID";
+	public static final String COLUMNNAME_WihthondingType = "Type";
 	
 	//--------------------------------------------------Sys Configs----------------------------------------------------------------
 	public static final String SYSCONFIG_LVE_GENERATE_WITHHOLDINGS_WITH_LIST_PRECISION = "LVE_GENERATE_WITHHOLDINGS_WITH_LIST_PRECISION";
