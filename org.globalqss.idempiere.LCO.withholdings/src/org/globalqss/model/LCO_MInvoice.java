@@ -134,8 +134,8 @@ public class LCO_MInvoice extends MInvoice
 				&& ING_AlterlativePartner_ID > 0)
 			alternativePartner = new MBPartner(getCtx(), ING_AlterlativePartner_ID, get_TrxName());
 		
-		int alt_ISIC_ID = alternativePartner.get_ValueAsInt("LCO_ISIC_ID");
-		int alt_TaxPayerType_ID = alternativePartner.get_ValueAsInt("LCO_TaxPayerType_ID");
+		int alt_ISIC_ID = alternativePartner != null ? alternativePartner.get_ValueAsInt("LCO_ISIC_ID") : 0;
+		int alt_TaxPayerType_ID = alternativePartner != null ? alternativePartner.get_ValueAsInt("LCO_TaxPayerType_ID") : 0;
 		//
 		
 		int bp_isic_id = bp.get_ValueAsInt("LCO_ISIC_ID");
