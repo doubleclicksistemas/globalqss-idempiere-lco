@@ -129,8 +129,9 @@ public class LCO_MInvoice extends MInvoice
 		MBPartner alternativePartner = null;
 		
 		int ING_AlternativePartner_ID = get_ValueAsInt(IngeintConstants.COLUMNNAME_AlternativePartner);
+		boolean IsAlternative = get_ValueAsBoolean(IngeintConstants.COLUMNNAME_IsAlternativePartner);
 		
-		if(get_ValueAsBoolean(IngeintConstants.COLUMNNAME_IsAlternativePartner) 
+		if(IsAlternative
 				&& ING_AlternativePartner_ID > 0)
 			alternativePartner = new MBPartner(getCtx(), ING_AlternativePartner_ID, get_TrxName());
 		
@@ -179,7 +180,8 @@ public class LCO_MInvoice extends MInvoice
 			int ISIC_ID = bp_isic_id;
 			int TaxPayerType_ID = bp_taxpayertype_id;
 			
-			if(ING_AlternativePartner_ID > 0 
+			if(IsAlternative
+					&& ING_AlternativePartner_ID > 0
 					&& !Util.isEmpty(wtType, true) 
 					&& wtType.toUpperCase().equals("IVA")) {
 				ISIC_ID = alt_ISIC_ID;
